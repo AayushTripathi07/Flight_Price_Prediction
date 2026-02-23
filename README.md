@@ -1,69 +1,182 @@
-# Flight Fare Prediction: 
+# ✈️ Flight Price Prediction
 
-## Table of Content
-  * [Demo](#demo)
-  * [Overview](#overview)
-  * [Motivation](#motivation)
-  * [Installation](#installation)
-  * [Deployement on Heroku](#deployement-on-heroku)
-  * [Directory Tree](#directory-tree)
-  * [Bug / Feature Request](#bug---feature-request)
-  * [Future scope of project](#future-scope)
+An end-to-end Machine Learning project to predict airline ticket prices using historical flight data.  
+This project demonstrates strong feature engineering, regression modeling, hyperparameter tuning, and model persistence.
 
+---
 
-## Demo
-Link: [https://flight-price-prediction-api.herokuapp.com/](https://flight-price-prediction-api.herokuapp.com/)
+## 📌 Project Objective
 
-[![](https://i.imgur.com/R1g2wvC.png)](https://flight-price-prediction-api.herokuapp.com/)
+The objective of this project is to build a regression model that can accurately predict flight ticket prices based on journey details such as airline, route, departure time, duration, and number of stops.
 
-[![](https://i.imgur.com/p0aeL6c.png)](https://flight-price-prediction-api.herokuapp.com/)
+This project follows a structured ML workflow similar to real-world industry pipelines.
 
-## Overview
-This is a Flask web app which predicts fare of Flight ticket.
+---
 
-## Motivation
-What to do when you are at home due to this pandemic situation? I started to learn Machine Learning model to get most out of it. I came to know mathematics behind all supervised models. Finally it is important to work on application (real world application) to actually make a difference.
+## 📂 Dataset Overview
 
-## Installation
-The Code is written in Python 3.6.10. If you don't have Python installed you can find it [here](https://www.python.org/downloads/). If you are using a lower version of Python you can upgrade using the pip package, ensuring you have the latest version of pip. To install the required packages and libraries, run this command in the project directory after [cloning](https://www.howtogeek.com/451360/how-to-clone-a-github-repository/) the repository:
-```bash
-pip install -r requirements.txt
+The dataset contains flight-related information including:
+
+- Airline  
+- Date of Journey  
+- Source  
+- Destination  
+- Route  
+- Departure Time  
+- Arrival Time  
+- Duration  
+- Total Stops  
+- Additional Info  
+- Price (Target Variable)
+
+Training Records: **10,682**  
+Test Records: **2,671**
+
+---
+
+## 🔄 Machine Learning Pipeline
+
+### 1️⃣ Data Cleaning & Preprocessing
+
+- Removed null values
+- Converted date columns to datetime format
+- Extracted:
+  - Journey Day
+  - Journey Month
+  - Departure Hour & Minute
+  - Arrival Hour & Minute
+- Converted duration text (e.g., “2h 50m”) into:
+  - Duration_hours
+  - Duration_mins
+- Dropped redundant columns (Route, Additional_Info, original date/time columns)
+
+---
+
+### 2️⃣ Handling Categorical Variables
+
+- **Nominal Features → One-Hot Encoding**
+  - Airline
+  - Source
+  - Destination
+
+- **Ordinal Feature → Label Encoding**
+  - Total_Stops (non-stop = 0, 1 stop = 1, etc.)
+
+Final dataset shape after encoding: **(10682, 30 features)**
+
+---
+
+### 3️⃣ Feature Selection
+
+Methods used:
+
+- Correlation Heatmap
+- ExtraTreesRegressor for feature importance
+
+This helped identify the most influential variables affecting price prediction.
+
+---
+
+## 🤖 Model Development
+
+### Model Used:
+**Random Forest Regressor**
+
+Why Random Forest?
+
+- Handles non-linear relationships
+- Works well without feature scaling
+- Reduces overfitting via ensemble learning
+- Strong baseline for tabular data
+
+---
+
+## 📊 Model Performance
+
+### Before Hyperparameter Tuning
+
+- R² Score: ~0.79  
+- MAE: ~1172  
+- RMSE: ~2085  
+
+### After Hyperparameter Tuning (RandomizedSearchCV)
+
+Best Parameters:
+
+- n_estimators: 700  
+- max_depth: 20  
+- min_samples_split: 15  
+- min_samples_leaf: 1  
+- max_features: auto  
+
+Final Performance:
+
+- **R² Score: ~0.81**
+- MAE: ~1165
+- RMSE: ~2015
+
+The model explains approximately **81% of the variance** in ticket prices.
+
+---
+
+## 📈 Evaluation Metrics Used
+
+- MAE (Mean Absolute Error)
+- MSE (Mean Squared Error)
+- RMSE (Root Mean Squared Error)
+- R² Score
+- Residual Distribution Plot
+- Actual vs Predicted Scatter Plot
+
+---
+
+## 💾 Model Persistence
+
+The trained model is saved using pickle for future reuse:
+
+```python
+import pickle
+file = open("flight_rf.pkl", "wb")
+pickle.dump(reg_rf, file)
+```
+## To load the model:
+
+```python
+model = pickle.load(open("flight_rf.pkl", "rb"))
 ```
 
-## Deployement on Heroku
-Login or signup in order to create virtual app. You can either connect your github profile or download ctl to manually deploy this project.
+## 🛠️ Technologies Used
 
-[![](https://i.imgur.com/dKmlpqX.png)](https://heroku.com)
+-Python
+-Pandas
+-NumPy
+-Matplotlib
+-Seaborn
+-Scikit-learn
+-Random Forest
+-ExtraTreesRegressor
+-RandomizedSearchCV
+-Pickle
 
-Our next step would be to follow the instruction given on [Heroku Documentation](https://devcenter.heroku.com/articles/getting-started-with-python) to deploy a web app.
+## ⚠️ Limitations
 
-## Directory Tree 
-```
-├── static 
-│   ├── css
-├── template
-│   ├── home.html
-├── Procfile
-├── README.md
-├── app.py
-├── flight_price.ipynb
-├── flight_rf.pkl
-├── requirements.txt
-```
-
-## Technologies Used
-
-![](https://forthebadge.com/images/badges/made-with-python.svg)
-
-[<img target="_blank" src="https://flask.palletsprojects.com/en/1.1.x/_images/flask-logo.png" width=170>](https://flask.palletsprojects.com/en/1.1.x/) [<img target="_blank" src="https://number1.co.za/wp-content/uploads/2017/10/gunicorn_logo-300x85.png" width=280>](https://gunicorn.org) [<img target="_blank" src="https://scikit-learn.org/stable/_static/scikit-learn-logo-small.png" width=200>](https://scikit-learn.org/stable/) 
+No real-time pricing API integration
+No deployment layer (Flask/Streamlit)
+External market variables (fuel cost, demand, holidays) not included
+Dataset limited to historical static records
 
 
-## Bug / Feature Request
+## 🔮 Future Improvements
 
-If you find a bug (the website couldn't handle the query and / or gave undesired results), kindly open an [issue](https://github.com/Mandal-21/Flight-Price-Prediction/issues) here by including your search query and the expected result
+Deploy as a web application (Flask/Streamlit)
+Compare with XGBoost and LightGBM
+Add SHAP for model interpretability
+Integrate live airline APIs
+Build an interactive dashboard
 
-## Future Scope
 
-* Use multiple Algorithms
-* Optimize Flask app.py
-* Front-End 
+## 👨‍💻 Author
+
+Aayush Tripathi
+B.Tech – Computer Science & Engineering
+Bennett University
